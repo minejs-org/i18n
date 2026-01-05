@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// test/main.test.ts
+// test/index.test.ts
 //
 // Made with ❤️ by Maysara.
 
@@ -9,7 +9,7 @@
 // ╔════════════════════════════════════════ PACK ════════════════════════════════════════╗
 
     import { describe, expect, test, beforeEach } from 'bun:test';
-    import * as i18n from '../src/main';
+    import * as i18n from '../src';
 
     const {
         I18nManager,

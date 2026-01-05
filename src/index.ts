@@ -1,4 +1,4 @@
-// src/main.ts
+// src/index.ts
 //
 // Made with ❤️ by Maysara.
 
