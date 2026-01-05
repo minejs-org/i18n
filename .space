@@ -1,0 +1,23 @@
+{
+	"type"              : "lib",
+	"template"          : "clean",
+	"pm"                : "bun",
+	"repo"              : {
+		"org"           : "minejs",
+		"name"          : "i18n",
+		"version"       : "0.0.1",
+		"desc"          : "A lightweight, production-ready internationalization (i18n) library with zero dependencies.",
+		"kw"            : ["minejs", "i18n"],
+		"license"       : "MIT",
+		"issues"        : "https://github.com/minejs-org/i18n/issues",
+		"homepage"      : "https://github.com/minejs-org/i18n#readme",
+		"git_url"       : "git+https://github.com/minejs-org/i18n.git"
+	},
+	"author"            : {
+		"id"            : "maysara-elshewehy",
+		"name"          : "Maysara",
+		"email"         : "maysara.elshewehy@gmail.com",
+		"url"           : "https://github.com/maysara-elshewehy"
+	},
+	"createdAt"         : "2026-01-05T02:12:19.758Z"
+}
