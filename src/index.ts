@@ -7,6 +7,7 @@
 // ╔════════════════════════════════════════ PACK ════════════════════════════════════════╗
 
     import * as types from './types';
+    import { I18nManager } from './mod/i18n';
 
 // ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
@@ -14,336 +15,10 @@
 
 // ╔════════════════════════════════════════ CORE ════════════════════════════════════════╗
 
-    export class I18nManager {
-
-        // ┌──────────────────────────────── STATE ─────────────────────────────┐
-
-            private translations        : types.TranslationSet = {};
-            private currentLanguage     : types.LanguageCode = 'en';
-            private defaultLanguage     : types.LanguageCode = 'en';
-            private fallbackLanguage    : types.LanguageCode = 'en';
-            private supportedLanguages  = new Set<types.LanguageCode>(['en']);
-            private rtlLanguages        = new Set<string>(['ar', 'he', 'fa', 'ur', 'yi', 'ji', 'iw', 'ku']);
-            private listeners           = new Set<(lang: types.LanguageCode) => void>();
-            private storage?            : types.I18nStorage;
-            private onLanguageChange?   : (lang: types.LanguageCode) => void;
-
-        // └────────────────────────────────────────────────────────────────────┘
-
-
-        // ┌──────────────────────────────── INIT ──────────────────────────────┐
-
-            constructor(config?: types.I18nConfig) {
-                if (config) {
-                    this.defaultLanguage = config.defaultLanguage || 'en';
-                    this.fallbackLanguage = config.fallbackLanguage || config.defaultLanguage || 'en';
-                    this.currentLanguage = config.defaultLanguage || 'en';
-                    this.storage = config.storage;
-                    this.onLanguageChange = config.onLanguageChange;
-
-                    if (config.supportedLanguages) {
-                        this.supportedLanguages = new Set(config.supportedLanguages);
-                    }
-                }
-            }
-
-            /**
-             * Initialize with stored language preference
-             */
-            public async init(): Promise<void> {
-                if (this.storage) {
-                    const stored = await this.storage.get('i18n-language');
-                    if (stored && this.supportedLanguages.has(stored)) {
-                        this.currentLanguage = stored;
-                    }
-                }
-            }
-
-        // └────────────────────────────────────────────────────────────────────┘
-
-
-        // ┌─────────────────────────────── LOADING ────────────────────────────┐
-
-            /**
-             * Load translations for a specific language
-             * @param lang Language code
-             * @param translations Translation object (can be nested)
-             */
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            public loadLanguage(lang: types.LanguageCode, translations: Record<string, any>): void {
-                if (!this.translations[lang]) {
-                    this.translations[lang] = {};
-                }
-
-                const flattened = this.flattenObject(translations);
-                this.translations[lang] = { ...this.translations[lang], ...flattened };
-                this.supportedLanguages.add(lang);
-            }
-
-            /**
-             * Load multiple languages at once
-             * @param translations Object with language codes as keys
-             */
-            public loadTranslations(translations: types.TranslationSet): void {
-                Object.entries(translations).forEach(([lang, trans]) => {
-                    this.loadLanguage(lang, trans);
-                });
-            }
-
-            /**
-             * Flatten nested object into dot notation
-             * @private
-             */
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            private flattenObject(obj: Record<string, any>, prefix: string = ''): Record<string, string> {
-                const flattened: Record<string, string> = {};
-
-                for (const key in obj) {
-                    if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
-
-                    const value = obj[key];
-                    const newKey = prefix ? `${prefix}.${key}` : key;
-
-                    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-                        Object.assign(flattened, this.flattenObject(value, newKey));
-                    } else {
-                        flattened[newKey] = String(value);
-                    }
-                }
-
-                return flattened;
-            }
-
-        // └────────────────────────────────────────────────────────────────────┘
-
-
-        // ┌───────────────────────────── TRANSLATION ──────────────────────────┐
-
-            /**
-             * Translate a key with parameter replacement
-             *
-             * @example
-             * t('welcome.message', { name: 'John' })
-             * // => "Welcome, John!"
-             *
-             * @param key Translation key (dot notation)
-             * @param params Optional parameters for replacement
-             * @returns Translated string
-             */
-            public t(key: string, params?: Record<string, string>): string {
-                let translation = this.getTranslation(key);
-
-                if (params) {
-                    Object.entries(params).forEach(([param, value]) => {
-                        // Check if parameter value is itself a translation key
-                        const paramValue = this.getTranslation(value, value);
-                        translation = translation.replace(
-                            new RegExp(`\\{${param}\\}`, 'g'),
-                            paramValue
-                        );
-                    });
-                }
-
-                return translation;
-            }
-
-            /**
-             * Get raw translation without parameter replacement
-             * @private
-             */
-            private getTranslation(key: string, fallback?: string): string {
-                // Try current language
-                if (this.translations[this.currentLanguage]?.[key]) {
-                    return this.translations[this.currentLanguage][key];
-                }
-
-                // Try fallback language
-                if (this.fallbackLanguage !== this.currentLanguage &&
-                    this.translations[this.fallbackLanguage]?.[key]) {
-                    return this.translations[this.fallbackLanguage][key];
-                }
-
-                // Try default language
-                if (this.defaultLanguage !== this.currentLanguage &&
-                    this.defaultLanguage !== this.fallbackLanguage &&
-                    this.translations[this.defaultLanguage]?.[key]) {
-                    return this.translations[this.defaultLanguage][key];
-                }
-
-                // Warn and return fallback
-                console.warn(`[i18n] Translation key not found: "${key}" (lang: ${this.currentLanguage})`);
-                return fallback || key;
-            }
-
-            /**
-             * Translate with a specific language temporarily
-             *
-             * @param key Translation key
-             * @param lang Language code
-             * @param params Optional parameters
-             */
-            public tLang(key: string, lang: types.LanguageCode, params?: Record<string, string>): string {
-                const original = this.currentLanguage;
-                this.currentLanguage = lang;
-                const result = this.t(key, params);
-                this.currentLanguage = original;
-                return result;
-            }
-
-            /**
-             * Translate and parse HTML-like tags into tokens
-             * Converts \n or /n to line breaks
-             *
-             * @example
-             * // Translation: "Hello\nWorld <strong>here</strong>"
-             * tParse('message')
-             * // => [
-             * //   { type: 'text', content: 'Hello' },
-             * //   { type: 'tag', tag: 'br', content: '' },
-             * //   { type: 'text', content: 'World ' },
-             * //   { type: 'tag', tag: 'strong', content: 'here' }
-             * // ]
-             *
-             * @param key Translation key
-             * @param params Optional parameters
-             * @returns Array of tokens
-             */
-            public tParse(key: string, params?: Record<string, string>): types.TranslationToken[] {
-                let translation = this.t(key, params);
-
-                // Convert newlines to <br> tags
-                translation = translation.replace(/\\n|\/n/g, '<br>');
-
-                const tokens: types.TranslationToken[] = [];
-                const regex = /<([a-z]+)>([^<]*)<\/\1>|<([a-z]+)\s*\/?>|([^<]+)/gi;
-                let match;
-
-                while ((match = regex.exec(translation)) !== null) {
-                    if (match[4]) {
-                        // Plain text
-                        tokens.push({ type: 'text', content: match[4] });
-                    } else if (match[1]) {
-                        // Paired tag: <strong>text</strong>
-                        tokens.push({ type: 'tag', tag: match[1], content: match[2] });
-                    } else if (match[3]) {
-                        // Self-closing: <br> or <br/>
-                        tokens.push({ type: 'tag', tag: match[3], content: '' });
-                    }
-                }
-
-                return tokens.length > 0 ? tokens : [{ type: 'text', content: translation }];
-            }
-
-        // └────────────────────────────────────────────────────────────────────┘
-
-
-        // ┌────────────────────────────── LANGUAGE ────────────────────────────┐
-
-            /**
-             * Set current language
-             */
-            public async setLanguage(lang: types.LanguageCode): Promise<void> {
-                if (!this.supportedLanguages.has(lang)) {
-                    console.warn(`[i18n] Language "${lang}" not supported`);
-                    return;
-                }
-
-                this.currentLanguage = lang;
-
-                // Persist if storage available
-                if (this.storage) {
-                    await this.storage.set('i18n-language', lang);
-                }
-
-                // Notify listeners
-                this.listeners.forEach(fn => fn(lang));
-
-                if (this.onLanguageChange) {
-                    this.onLanguageChange(lang);
-                }
-            }
-
-            /**
-             * Get current language
-             */
-            public getLanguage(): types.LanguageCode {
-                return this.currentLanguage;
-            }
-
-            /**
-             * Get all supported languages
-             */
-            public getSupportedLanguages(): types.LanguageCode[] {
-                return Array.from(this.supportedLanguages);
-            }
-
-            /**
-             * Check if language is supported
-             */
-            public isLanguageSupported(lang: types.LanguageCode): boolean {
-                return this.supportedLanguages.has(lang);
-            }
-
-        // └────────────────────────────────────────────────────────────────────┘
-
-
-        // ┌─────────────────────────────── HELPERS ────────────────────────────┐
-
-            /**
-             * Check if a translation key exists
-             */
-            public hasKey(key: string): boolean {
-                return !!(
-                    this.translations[this.currentLanguage]?.[key] ||
-                    this.translations[this.fallbackLanguage]?.[key] ||
-                    this.translations[this.defaultLanguage]?.[key]
-                );
-            }
-
-            /**
-             * Get all translations for current language
-             */
-            public getTranslations(): Record<string, string> {
-                return this.translations[this.currentLanguage] || {};
-            }
-
-            /**
-             * Check if current language is RTL
-             */
-            public isRTL(): boolean {
-                return this.rtlLanguages.has(this.currentLanguage.toLowerCase().substring(0, 2));
-            }
-
-            /**
-             * Check if specific language is RTL
-             */
-            public isRTLLanguage(lang: types.LanguageCode): boolean {
-                return this.rtlLanguages.has(lang.toLowerCase().substring(0, 2));
-            }
-
-            /**
-             * Subscribe to language changes
-             * @returns Unsubscribe function
-             */
-            public onChange(callback: (lang: types.LanguageCode) => void): () => void {
-                this.listeners.add(callback);
-                return () => this.listeners.delete(callback);
-            }
-
-        // └────────────────────────────────────────────────────────────────────┘
-
-    }
-
-// ╚══════════════════════════════════════════════════════════════════════════════════════╝
-
-
-
-// ╔════════════════════════════════════════ ════ ════════════════════════════════════════╗
-
     /**
-     * Browser storage adapter using localStorage
+     * Storage adapter for browser (localStorage)
      */
-    export const browserStorage: types.I18nStorage = {
+    const createBrowserStorage = (): types.I18nStorage => ({
         get: (key: string) => {
             if (typeof localStorage === 'undefined') return null;
             return localStorage.getItem(key);
@@ -353,53 +28,29 @@
                 localStorage.setItem(key, value);
             }
         }
-    };
+    });
 
     /**
-     * Memory storage adapter (for server/testing)
+     * Storage adapter for memory (in-process storage)
      */
-    export const memoryStorage = (() => {
+    const createMemoryStorage = (): types.I18nStorage => {
         const store = new Map<string, string>();
         return {
             get: (key: string) => store.get(key) || null,
             set: (key: string, value: string) => { store.set(key, value); }
         };
-    })();
+    };
 
     /**
-     * Fetch translations from URLs
-     * Works in both browser and Node.js (with node-fetch)
+     * Auto-select appropriate storage based on environment
      */
-    export async function fetchTranslations(
-        urls: string | string[],
-        manager: I18nManager
-    ): Promise<void> {
-        const urlList = Array.isArray(urls) ? urls : [urls];
-        const translations: types.TranslationSet = {};
-
-        for (const url of urlList) {
-            try {
-                const response = await fetch(url);
-                if (response.ok) {
-                    const data = await response.json();
-                    // Extract language from filename: /path/en.json -> en
-                    const langMatch = url.match(/([a-z]{2,3})\.json$/i);
-                    const lang = langMatch ? langMatch[1].toLowerCase() : 'en';
-                    translations[lang] = data;
-                }
-            } catch (error) {
-                console.warn(`[i18n] Failed to fetch: ${url}`, error);
-            }
-        }
-
-        if (Object.keys(translations).length > 0) {
-            manager.loadTranslations(translations);
-        }
-    }
+    const getDefaultStorage = (): types.I18nStorage => {
+        return typeof localStorage !== 'undefined' ? createBrowserStorage() : createMemoryStorage();
+    };
 
     /**
-     * Lazy loader: fetch language only when needed
-     * Prevents loading all languages at startup
+     * Lazy loader: fetch language on-demand
+     * Supports both URL-based (browser) and file-based (server) loading
      */
     export class LazyLoader {
         private baseUrl: string;
@@ -528,6 +179,27 @@
 // ╔════════════════════════════════════════ ════ ════════════════════════════════════════╗
 
     let instance: I18nManager | null = null;
+    let lazyLoader: LazyLoader | null = null;
+
+    /**
+     * Get browser language preference
+     * Uses navigator.language if available (browser environment)
+     * @private
+     */
+    function detectBrowserLanguage(): string {
+        if (typeof navigator !== 'undefined' && navigator.language) {
+            return navigator.language.split('-')[0].toLowerCase();
+        }
+        return 'en';
+    }
+
+    /**
+     * Check if running in browser environment
+     * @private
+     */
+    function isBrowser(): boolean {
+        return typeof fetch !== 'undefined' && typeof window !== 'undefined';
+    }
 
     /**
      * Get or create the global i18n instance
@@ -540,141 +212,151 @@
     }
 
     /**
-     * Initialize i18n with config
-     * Call this once at app startup
+     * Get the lazy loader instance (only available after setupI18n with basePath)
+     */
+    export function getLazyLoader(): LazyLoader | null {
+        return lazyLoader;
+    }
+
+    /**
+     * Main setup function - Single, simple, auto-detecting initialization
+     *
+     * Auto-detects environment and handles both browser and server:
+     * - Browser: Auto-detects language, loads from URL path
+     * - Server: Uses defaultLanguage, loads from file system
+     *
+     * Call this ONCE at app startup.
      *
      * @example
-     * // Load only default language at startup
+     * // Browser - Auto-detects language, lazy-loads from URL
      * await setupI18n({
-     *   defaultLanguage: 'en',
-     *   supportedLanguages: ['en', 'ar', 'fr', 'de']
-     * });
-     */
-    export async function setupI18n(config: types.I18nConfig): Promise<I18nManager> {
-        instance = new I18nManager(config);
-        await instance.init();
-        return instance;
-    }
-
-    /**
-     * Create a lazy loader for translations
-     * Only loads languages when needed
-     *
-     * @example
-     * const loader = createLazyLoader('https://mycdn.com/i18n/');
-     *
-     * // Later, when user switches language:
-     * await loader.load('ar');
-     * await setLanguage('ar');
-     */
-    export function createLazyLoader(baseUrl: string, fileExtension: string = 'json'): LazyLoader {
-        return new LazyLoader(baseUrl, getI18n(), fileExtension);
-    }
-
-    /**
-     * Setup i18n with lazy loading
-     * Only loads the default language at startup
-     *
-     * @example
-     * // Browser
-     * const loader = await setupLazy({
-     *   defaultLanguage: 'en',
-     *   supportedLanguages: ['en', 'ar', 'fr', 'de', 'zh'],
+     *   supportedLanguages: ['en', 'ar', 'fr'],
      *   basePath: '/i18n/'
      * });
      *
-     * // Later when user switches:
-     * await loader.load('ar');
-     * await setLanguage('ar');
-     */
-    export async function setupLazy(config: types.I18nConfig & { basePath?: string; baseUrl?: string }): Promise<LazyLoader> {
-        const manager = new I18nManager(config);
-        await manager.init();
-        instance = manager;
-
-        const basePath = config.basePath || config.baseUrl || './locales/';
-        const fileExtension = config.fileExtension || 'json';
-        const loader = new LazyLoader(basePath, manager, fileExtension);
-
-        // Load only the current language at startup
-        await loader.load(manager.getLanguage());
-
-        return loader;
-    }
-
-    /**
-     * Auto-setup: Smart initialization based on environment and config
-     * Automatically handles browser vs server and file vs URL loading
-     *
      * @example
-     * // Browser: Auto-fetches from server
-     * const loader = await setupAuto({
+     * // Server - Uses default language, lazy-loads from filesystem
+     * await setupI18n({
      *   defaultLanguage: 'en',
      *   supportedLanguages: ['en', 'ar', 'fr'],
-     *   basePath: 'http://localhost:3000/static/i18n/'
-     * });
-     *
-     * // Server (Node.js): Auto-reads from filesystem
-     * const loader = await setupAuto({
-     *   defaultLanguage: 'en',
-     *   supportedLanguages: ['en', 'ar', 'fr'],
-     *   basePath: './public/locales/'
+     *   basePath: './locales/'
      * });
      */
-    export async function setupAuto(config: types.I18nConfig & { basePath: string }): Promise<LazyLoader> {
-        const manager = new I18nManager(config);
-        await manager.init();
-        instance = manager;
+    export async function setupI18n(
+        config: types.I18nConfig & { basePath?: string }
+    ): Promise<I18nManager> {
+        // Auto-detect browser language if in browser and no defaultLanguage specified
+        if (isBrowser() && !config.defaultLanguage) {
+            const detectedLang = detectBrowserLanguage();
+            if (config.supportedLanguages?.includes(detectedLang)) {
+                config.defaultLanguage = detectedLang;
+            } else {
+                config.defaultLanguage = config.supportedLanguages?.[0] || 'en';
+            }
+        }
 
-        const fileExtension = config.fileExtension || 'json';
-        const loader = new LazyLoader(config.basePath, manager, fileExtension);
+        // Use appropriate storage based on environment
+        if (!config.storage) {
+            config.storage = getDefaultStorage();
+        }
 
-        // Auto-load default language
-        await loader.load(manager.getLanguage());
+        // Create and initialize manager
+        instance = new I18nManager(config);
+        await instance.init();
 
-        return loader;
+        // Setup lazy loading if basePath provided
+        if (config.basePath) {
+            const fileExtension = config.fileExtension || 'json';
+            lazyLoader = new LazyLoader(config.basePath, instance, fileExtension);
+            await lazyLoader.load(instance.getLanguage());
+        }
+
+        return instance;
     }
+
+
 
 // ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 
 
-// ╔════════════════════════════════════════ ════ ════════════════════════════════════════╗
+// ╔════════════════════════════════════════ CONVENIENCE FUNCTIONS ════════════════════════════════════════╗
 
+    /**
+     * Translate a key with optional parameter replacement
+     */
     export const t = (key: string, params?: Record<string, string>) =>
         getI18n().t(key, params);
 
+    /**
+     * Translate a key with a specific language temporarily
+     */
     export const tLang = (key: string, lang: types.LanguageCode, params?: Record<string, string>) =>
         getI18n().tLang(key, lang, params);
 
+    /**
+     * Parse translation with HTML tags into tokens
+     */
     export const tParse = (key: string, params?: Record<string, string>) =>
         getI18n().tParse(key, params);
 
-    export const setLanguage = (lang: types.LanguageCode) =>
-        getI18n().setLanguage(lang);
+    /**
+     * Set current language and trigger listeners
+     */
+    export const setLanguage = (lang: types.LanguageCode): Promise<void> => {
+        // Load language if lazy loader available
+        if (lazyLoader && !lazyLoader.isLoaded(lang)) {
+            return lazyLoader.load(lang).then(() => getI18n().setLanguage(lang));
+        }
+        return getI18n().setLanguage(lang);
+    };
 
+    /**
+     * Get current language code
+     */
     export const getLanguage = () =>
         getI18n().getLanguage();
 
+    /**
+     * Get all supported languages
+     */
     export const getSupportedLanguages = () =>
         getI18n().getSupportedLanguages();
 
+    /**
+     * Check if translation key exists
+     */
     export const hasKey = (key: string) =>
         getI18n().hasKey(key);
 
+    /**
+     * Check if current language is RTL
+     */
     export const isRTL = () =>
         getI18n().isRTL();
 
+    /**
+     * Check if specific language is RTL
+     */
     export const isRTLLanguage = (lang: types.LanguageCode) =>
         getI18n().isRTLLanguage(lang);
 
+    /**
+     * Subscribe to language changes
+     */
     export const onChange = (callback: (lang: types.LanguageCode) => void) =>
         getI18n().onChange(callback);
 
+    /**
+     * Load translations for a specific language
+     */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     export const loadLanguage = (lang: types.LanguageCode, translations: Record<string, any>) =>
         getI18n().loadLanguage(lang, translations);
 
+    /**
+     * Load multiple languages at once
+     */
     export const loadTranslations = (translations: types.TranslationSet) =>
         getI18n().loadTranslations(translations);
 
@@ -682,7 +364,7 @@
 
 
 
-// ╔════════════════════════════════════════ ════ ════════════════════════════════════════╗
+// ╔════════════════════════════════════════ UTILITY FUNCTIONS ════════════════════════════════════════╗
 
     /**
      * Generate page title with proper RTL handling
@@ -690,7 +372,6 @@
      * @example
      * // English: "Profile - MyApp"
      * // Arabic: "MyApp - الملف الشخصي"
-     * genPageTitle('profile', 'page.')
      */
     export function genPageTitle(key: string, prefix: string = 'page.'): string {
         const appName = t('app.name');
@@ -699,7 +380,7 @@
     }
 
     /**
-     * Pluralization helper
+     * Pluralization helper - select translation based on count
      *
      * @example
      * plural(1, 'item.single', 'item.plural') // "1 item"
@@ -714,26 +395,34 @@
 
 
 
-// ╔════════════════════════════════════════ ════ ════════════════════════════════════════╗
+// ╔════════════════════════════════════════ EXPORTS ════════════════════════════════════════╗
 
     export default {
-        I18nManager,
-        getI18n,
         setupI18n,
-        createLazyLoader,
-        setupLazy,
-        setupAuto,
-        browserStorage,
-        memoryStorage,
-        fetchTranslations,
+        getI18n,
+        getLazyLoader,
+        I18nManager,
+        LazyLoader,
+        t,
+        tLang,
+        tParse,
+        setLanguage,
+        getLanguage,
+        getSupportedLanguages,
+        hasKey,
+        isRTL,
+        isRTLLanguage,
+        onChange,
+        loadLanguage,
+        loadTranslations,
         genPageTitle,
         plural,
     };
 
-
     export type I18nManagerInstance = InstanceType<typeof I18nManager>;
     export type LazyLoaderInstance = InstanceType<typeof LazyLoader>;
 
+    export * from './mod/i18n';
     export * from './types';
 
 // ╚══════════════════════════════════════════════════════════════════════════════════════╝
