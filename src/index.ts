@@ -449,8 +449,11 @@
 
                 let data: Record<string, string> | null;
 
-                if (this.isServerSide) {
-                    // Node.js: Read from filesystem
+                // Check if it's a local file path (relative or absolute)
+                const isLocalPath = filePath.startsWith('.') || filePath.startsWith('/') || /^[a-zA-Z]:/.test(filePath);
+
+                if (isLocalPath || this.isServerSide) {
+                    // Node.js/local: Read from filesystem
                     data = await this.loadFromFile(filePath);
                 } else {
                     // Browser: Fetch from URL
@@ -487,13 +490,25 @@
                 // Dynamic import to avoid issues in browsers
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const fs = await import('fs').then(m => m.promises).catch((): any => null);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const path = await import('path').then(m => m).catch((): any => null);
 
                 if (!fs) {
                     console.warn('[i18n] fs module not available. Running in browser?');
                     return null;
                 }
 
-                const content = await fs.readFile(filePath, 'utf-8');
+                // Resolve relative paths to absolute paths
+                let resolvedPath = filePath;
+                if (path && !path.isAbsolute(filePath)) {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const process = await import('process').then(m => m).catch((): any => null);
+                    if (process) {
+                        resolvedPath = path.resolve(process.cwd(), filePath);
+                    }
+                }
+
+                const content = await fs.readFile(resolvedPath, 'utf-8');
                 return JSON.parse(content);
             } catch (error) {
                 console.warn(`[i18n] Error reading file: ${filePath}`, error);
