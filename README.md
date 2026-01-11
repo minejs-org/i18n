@@ -8,10 +8,10 @@
 </div>
 
 <div align="center">
-    <img src="https://img.shields.io/badge/v-0.0.8-black"/>
+    <img src="https://img.shields.io/badge/v-0.0.9-black"/>
     <a href="https://github.com/minejs-org"><img src="https://img.shields.io/badge/🔥-@minejs-black"/></a>
     <br>
-    <img src="https://img.shields.io/badge/coverage-94.40%25-brightgreen" alt="Test Coverage" />
+    <img src="https://img.shields.io/badge/coverage-94.12%25-brightgreen" alt="Test Coverage" />
     <img src="https://img.shields.io/github/issues/minejs-org/i18n?style=flat" alt="Github Repo Issues" />
     <img src="https://img.shields.io/github/stars/minejs-org/i18n?style=social" alt="GitHub Repo stars" />
 </div>
@@ -150,16 +150,6 @@
             // ]
             ```
 
-        - #### Page Titles (with RTL support)
-
-            ```typescript
-            import { genPageTitle } from '@minejs/i18n';
-
-            // en: "Settings - MyApp"
-            // ar: "MyApp - الإعدادات"
-            const title = genPageTitle('settings');
-            ```
-
     <br>
     <br>
 
@@ -272,14 +262,6 @@
 
                 ```typescript
                 const unsubscribe = onChange((lang) => console.log('Changed to:', lang))
-                ```
-
-            - #### `genPageTitle(key, prefix?)`
-
-                > Generate page title with app name
-
-                ```typescript
-                genPageTitle('home') // "Home - MyApp" or "MyApp - الرئيسية"
                 ```
 
             - #### `plural(count, singleKey, pluralKey)`

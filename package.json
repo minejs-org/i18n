@@ -1,6 +1,6 @@
 {
 	"name"                             : "@minejs/i18n",
-	"version"                          : "0.0.8",
+	"version"                          : "0.0.9",
 	"description"                      : "A lightweight, production-ready internationalization (i18n) library with zero dependencies.",
 	"keywords"                         : ["minejs", "i18n"],
 	"license"                          : "MIT",

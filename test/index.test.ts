@@ -29,7 +29,6 @@
         onChange,
         loadLanguage,
         loadTranslations,
-        genPageTitle,
         plural,
     } = i18n;
 
@@ -727,44 +726,6 @@
 
             describe('Utility Functions', () => {
 
-                describe('genPageTitle', () => {
-                    test('should generate LTR title format', () => {
-                        const m = new I18nManager();
-                        m.loadTranslations({
-                            en: {
-                                'app.name': 'MyApp',
-                                'page.home': 'Home'
-                            }
-                        });
-                        const title = i18n.genPageTitle('home');
-                        expect(title).toBeTruthy();
-                    });
-
-                    test('should generate RTL title format', async () => {
-                        const m = new I18nManager({ defaultLanguage: 'ar' });
-                        m.loadTranslations({
-                            ar: {
-                                'app.name': 'تطبيقي',
-                                'page.home': 'الرئيسية'
-                            }
-                        });
-                        await m.setLanguage('ar');
-                        // genPageTitle uses global instance, so we test directly with t()
-                        const appName = m.t('app.name');
-                        const pageName = m.t('page.home');
-                        const rtlFormat = `${appName} - ${pageName}`;
-                        const ltrFormat = `${pageName} - ${appName}`;
-                        expect(m.isRTL()).toBe(true);
-                    });
-
-                    test('should use default prefix', () => {
-                        const m = new I18nManager();
-                        m.loadLanguage('en', { 'page.home': 'Home', 'app.name': 'App' });
-                        const result = m.t('page.home');
-                        expect(result).toBe('Home');
-                    });
-                });
-
                 describe('plural', () => {
                     test('should use singular for count=1', () => {
                         const m = new I18nManager();
@@ -1077,41 +1038,6 @@
                     const m = new I18nManager();
                     m.loadLanguage('en', { test: 'Test' });
                     expect(m.hasKey('test')).toBe(true);
-                });
-
-            });
-
-        // └────────────────────────────────────────────────────────┘
-
-
-        // ┌──────────────── genPageTitle Coverage ───────────────────┐
-
-            describe('genPageTitle Extended Coverage', () => {
-
-                test('should generate title with global instance', () => {
-                    setupI18n({ defaultLanguage: 'en' });
-                    loadTranslations({
-                        'en': {
-                            'app.name': 'MyApp',
-                            'page.dashboard': 'Dashboard'
-                        }
-                    });
-                    const title = genPageTitle('dashboard');
-                    expect(title).toContain('Dashboard');
-                    expect(title).toContain('MyApp');
-                });
-
-                test('should support custom prefix', () => {
-                    setupI18n({ defaultLanguage: 'en' });
-                    loadTranslations({
-                        'en': {
-                            'app.name': 'App',
-                            'custom.test': 'Test Page'
-                        }
-                    });
-                    const result = genPageTitle('test', 'custom.');
-                    expect(result).toContain('Test Page');
-                    expect(result).toContain('App');
                 });
 
             });
@@ -1479,13 +1405,6 @@
 
                     expect(isRTLLanguage('en')).toBe(false);
                     expect(isRTLLanguage('ar')).toBe(true);
-
-                    // Check genPageTitle respects RTL
-                    loadLanguage('en', { 'app.name': 'App', 'page.test': 'Test' });
-                    loadLanguage('ar', { 'app.name': 'التطبيق', 'page.test': 'اختبار' });
-
-                    expect(genPageTitle('test')).toContain('App');
-                    expect(genPageTitle('test')).toContain('Test');
                 });
 
             });

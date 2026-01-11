@@ -238,14 +238,6 @@ declare const loadLanguage: (lang: LanguageCode, translations: Record<string, an
  */
 declare const loadTranslations: (translations: TranslationSet) => void;
 /**
- * Generate page title with proper RTL handling
- *
- * @example
- * // English: "Profile - MyApp"
- * // Arabic: "MyApp - الملف الشخصي"
- */
-declare function genPageTitle(key: string, prefix?: string): string;
-/**
  * Pluralization helper - select translation based on count
  *
  * @example
@@ -271,11 +263,10 @@ declare const _default: {
     onChange: (callback: (lang: LanguageCode) => void) => () => void;
     loadLanguage: (lang: LanguageCode, translations: Record<string, any>) => void;
     loadTranslations: (translations: TranslationSet) => void;
-    genPageTitle: typeof genPageTitle;
     plural: typeof plural;
 };
 
 type I18nManagerInstance = InstanceType<typeof I18nManager>;
 type LazyLoaderInstance = InstanceType<typeof LazyLoader>;
 
-export { type I18nConfig, I18nManager, type I18nManagerInstance, type I18nStorage, type LanguageCode, LazyLoader, type LazyLoaderInstance, type TranslationSet, type TranslationToken, _default as default, genPageTitle, getI18n, getLanguage, getLazyLoader, getSupportedLanguages, hasKey, isRTL, isRTLLanguage, loadLanguage, loadTranslations, onChange, plural, setLanguage, setupI18n, t, tLang, tParse };
+export { type I18nConfig, I18nManager, type I18nManagerInstance, type I18nStorage, type LanguageCode, LazyLoader, type LazyLoaderInstance, type TranslationSet, type TranslationToken, _default as default, getI18n, getLanguage, getLazyLoader, getSupportedLanguages, hasKey, isRTL, isRTLLanguage, loadLanguage, loadTranslations, onChange, plural, setLanguage, setupI18n, t, tLang, tParse };

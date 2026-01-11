@@ -44,6 +44,7 @@
              * Initialize with stored language preference
              */
             public async init(): Promise<void> {
+
                 if (this.storage) {
                     const stored = await this.storage.get('i18n-language');
                     if (stored && this.supportedLanguages.has(stored)) {
@@ -124,6 +125,7 @@
              * @returns Translated string
              */
             public t(key: string, params?: Record<string, string>): string {
+
                 let translation = this.getTranslation(key);
 
                 if (params) {
@@ -230,7 +232,7 @@
              */
             public async setLanguage(lang: types.LanguageCode): Promise<void> {
                 if (!this.supportedLanguages.has(lang)) {
-                    console.warn(`[i18n] Language "${lang}" not supported`);
+                    // console.warn(`[i18n] Language "${lang}" not supported`);
                     return;
                 }
 

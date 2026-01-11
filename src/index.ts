@@ -245,6 +245,7 @@
     export async function setupI18n(
         config: types.I18nConfig & { basePath?: string }
     ): Promise<I18nManager> {
+
         // Auto-detect browser language if in browser and no defaultLanguage specified
         if (isBrowser() && !config.defaultLanguage) {
             const detectedLang = detectBrowserLanguage();
@@ -367,19 +368,6 @@
 // ╔════════════════════════════════════════ UTILITY FUNCTIONS ════════════════════════════════════════╗
 
     /**
-     * Generate page title with proper RTL handling
-     *
-     * @example
-     * // English: "Profile - MyApp"
-     * // Arabic: "MyApp - الملف الشخصي"
-     */
-    export function genPageTitle(key: string, prefix: string = 'page.'): string {
-        const appName = t('app.name');
-        const pageName = t(prefix + key);
-        return isRTL() ? `${appName} - ${pageName}` : `${pageName} - ${appName}`;
-    }
-
-    /**
      * Pluralization helper - select translation based on count
      *
      * @example
@@ -415,7 +403,6 @@
         onChange,
         loadLanguage,
         loadTranslations,
-        genPageTitle,
         plural,
     };
 
