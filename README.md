@@ -8,7 +8,7 @@
 </div>
 
 <div align="center">
-    <img src="https://img.shields.io/badge/v-0.0.9-black"/>
+    <img src="https://img.shields.io/badge/v-0.1.0-black"/>
     <a href="https://github.com/minejs-org"><img src="https://img.shields.io/badge/🔥-@minejs-black"/></a>
     <br>
     <img src="https://img.shields.io/badge/coverage-94.12%25-brightgreen" alt="Test Coverage" />
@@ -56,14 +56,18 @@
         ```jsonc
         // ./src/shared/dist/u18n/en.json
         {
-            "key": "value"
+            "group": {
+                "key": "value"
+            }
         }
         ```
 
         ```jsonc
         // ./src/shared/dist/u18n/ar.json
         {
-            "key": "قيـمة"
+            "group": {
+                "key": "قيـمة"
+            }
         }
         ```
 
@@ -130,7 +134,7 @@
             ```
 
             ```typescript
-            t('greeting', { name: 'John', count: '5' })
+            t('group.greeting', { name: 'John', count: '5' })
             // "Hello John, you have 5 messages"
             ```
 
@@ -143,7 +147,7 @@
             ```
 
             ```typescript
-            const tokens = tParse('terms');
+            const tokens = tParse('group.terms');
             // [
             //   { type: 'text', content: 'I agree to the ' },
             //   { type: 'tag', tag: 'link', content: 'Terms of Service' }
@@ -205,7 +209,7 @@
                 > Translate with parameter replacement
 
                 ```typescript
-                t('greeting', { name: 'John' }) // "Hello John"
+                t('group.greeting', { name: 'John' }) // "Hello John"
                 ```
 
             - #### `tLang(key, lang, params?)`
@@ -213,7 +217,7 @@
                 > Translate with specific language
 
                 ```typescript
-                tLang('greeting', 'ar', { name: 'أحمد' })
+                tLang('group.greeting', 'ar', { name: 'أحمد' })
                 ```
 
             - #### `tParse(key, params?)`
@@ -221,7 +225,7 @@
                 > Parse translation with HTML tags
 
                 ```typescript
-                tParse('message') // Returns TokenArray
+                tParse('group.message') // Returns TokenArray
                 ```
 
             - #### `setLanguage(lang)`
