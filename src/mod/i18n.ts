@@ -243,8 +243,14 @@
                     await this.storage.set('lang', lang);
                 }
 
-                // Set cookie
-                setCookie('lang', lang, 365);
+                // client
+                if( typeof document !== 'undefined' ) {
+                    // cookie
+                    setCookie('lang', lang, 365);
+
+                    // html lang attribute
+                    document.documentElement.lang = lang;
+                }
 
                 // Notify listeners
                 this.listeners.forEach(fn => fn(lang));
