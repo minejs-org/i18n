@@ -286,20 +286,20 @@
     /**
      * Translate a key with optional parameter replacement
      */
-    export const t = (key: string, params?: Record<string, string>) =>
-        getI18n().t(key, params);
+    export const t = (key: string, params?: Record<string, string>, fallback?: string) =>
+        getI18n().t(key, params, fallback);
 
     /**
      * Translate a key with a specific language temporarily
      */
-    export const tLang = (key: string, lang: types.LanguageCode, params?: Record<string, string>) =>
-        getI18n().tLang(key, lang, params);
+    export const tLang = (lang: types.LanguageCode, key: string, params?: Record<string, string>, fallback?: string) =>
+        getI18n().tLang(lang, key, params, fallback);
 
     /**
      * Parse translation with HTML tags into tokens
      */
-    export const tParse = (key: string, params?: Record<string, string>) =>
-        getI18n().tParse(key, params);
+    export const tParse = (key: string, params?: Record<string, string>, fallback?: string) =>
+        getI18n().tParse(key, params, fallback);
 
     /**
      * Set current language and trigger listeners

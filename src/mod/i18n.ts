@@ -122,11 +122,12 @@
              *
              * @param key Translation key (dot notation)
              * @param params Optional parameters for replacement
+             * @param fallback Optional fallback string if key not found
              * @returns Translated string
              */
-            public t(key: string, params?: Record<string, string>): string {
+            public t(key: string, params?: Record<string, string>, fallback?: string): string {
 
-                let translation = this.getTranslation(key);
+                let translation = this.getTranslation(key, fallback);
 
                 if (params) {
                     Object.entries(params).forEach(([param, value]) => {
@@ -166,14 +167,15 @@
             /**
              * Translate with a specific language temporarily
              *
-             * @param key Translation key
              * @param lang Language code
+             * @param key Translation key
              * @param params Optional parameters
+             * @param fallback Optional fallback string if key not found
              */
-            public tLang(key: string, lang: types.LanguageCode, params?: Record<string, string>): string {
+            public tLang(lang: types.LanguageCode, key: string, params?: Record<string, string>, fallback?: string): string {
                 const original = this.currentLanguage;
                 this.currentLanguage = lang;
-                const result = this.t(key, params);
+                const result = this.t(key, params, fallback);
                 this.currentLanguage = original;
                 return result;
             }
@@ -194,11 +196,11 @@
              *
              * @param key Translation key
              * @param params Optional parameters
+             * @param fallback Optional fallback string if key not found
              * @returns Array of tokens
              */
-            public tParse(key: string, params?: Record<string, string>): types.TranslationToken[] {
-                let translation = this.t(key, params);
-
+            public tParse(key: string, params?: Record<string, string>, fallback?: string): types.TranslationToken[] {
+                let translation = this.t(key, params, fallback);
                 // Convert newlines to <br> tags
                 translation = translation.replace(/\\n|\/n/g, '<br>');
 

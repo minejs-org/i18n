@@ -58,9 +58,10 @@ declare class I18nManager {
      *
      * @param key Translation key (dot notation)
      * @param params Optional parameters for replacement
+     * @param fallback Optional fallback string if key not found
      * @returns Translated string
      */
-    t(key: string, params?: Record<string, string>): string;
+    t(key: string, params?: Record<string, string>, fallback?: string): string;
     /**
      * Get raw translation without parameter replacement
      * @private
@@ -69,11 +70,12 @@ declare class I18nManager {
     /**
      * Translate with a specific language temporarily
      *
-     * @param key Translation key
      * @param lang Language code
+     * @param key Translation key
      * @param params Optional parameters
+     * @param fallback Optional fallback string if key not found
      */
-    tLang(key: string, lang: LanguageCode, params?: Record<string, string>): string;
+    tLang(lang: LanguageCode, key: string, params?: Record<string, string>, fallback?: string): string;
     /**
      * Translate and parse HTML-like tags into tokens
      * Converts \n or /n to line breaks
@@ -90,9 +92,10 @@ declare class I18nManager {
      *
      * @param key Translation key
      * @param params Optional parameters
+     * @param fallback Optional fallback string if key not found
      * @returns Array of tokens
      */
-    tParse(key: string, params?: Record<string, string>): TranslationToken[];
+    tParse(key: string, params?: Record<string, string>, fallback?: string): TranslationToken[];
     /**
      * Set current language
      */
@@ -192,15 +195,15 @@ declare function setupI18n(config: I18nConfig & {
 /**
  * Translate a key with optional parameter replacement
  */
-declare const t: (key: string, params?: Record<string, string>) => string;
+declare const t: (key: string, params?: Record<string, string>, fallback?: string) => string;
 /**
  * Translate a key with a specific language temporarily
  */
-declare const tLang: (key: string, lang: LanguageCode, params?: Record<string, string>) => string;
+declare const tLang: (lang: LanguageCode, key: string, params?: Record<string, string>, fallback?: string) => string;
 /**
  * Parse translation with HTML tags into tokens
  */
-declare const tParse: (key: string, params?: Record<string, string>) => TranslationToken[];
+declare const tParse: (key: string, params?: Record<string, string>, fallback?: string) => TranslationToken[];
 /**
  * Set current language and trigger listeners
  */
@@ -251,9 +254,9 @@ declare const _default: {
     getLazyLoader: typeof getLazyLoader;
     I18nManager: typeof I18nManager;
     LazyLoader: typeof LazyLoader;
-    t: (key: string, params?: Record<string, string>) => string;
-    tLang: (key: string, lang: LanguageCode, params?: Record<string, string>) => string;
-    tParse: (key: string, params?: Record<string, string>) => TranslationToken[];
+    t: (key: string, params?: Record<string, string>, fallback?: string) => string;
+    tLang: (lang: LanguageCode, key: string, params?: Record<string, string>, fallback?: string) => string;
+    tParse: (key: string, params?: Record<string, string>, fallback?: string) => TranslationToken[];
     setLanguage: (lang: LanguageCode) => Promise<void>;
     getLanguage: () => string;
     getSupportedLanguages: () => string[];

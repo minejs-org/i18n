@@ -8,7 +8,7 @@
 </div>
 
 <div align="center">
-    <img src="https://img.shields.io/badge/v-0.1.2-black"/>
+    <img src="https://img.shields.io/badge/v-0.1.3-black"/>
     <a href="https://github.com/minejs-org"><img src="https://img.shields.io/badge/🔥-@minejs-black"/></a>
     <br>
     <img src="https://img.shields.io/badge/coverage-94.12%25-brightgreen" alt="Test Coverage" />
@@ -204,7 +204,7 @@
                 });
                 ```
 
-            - #### `t(key, params?)`
+            - #### `t(key, params?, fallback?)`
 
                 > Translate with parameter replacement
 
@@ -212,7 +212,7 @@
                 t('group.greeting', { name: 'John' }) // "Hello John"
                 ```
 
-            - #### `tLang(key, lang, params?)`
+            - #### `tLang(lang, key, params?, fallback?)`
 
                 > Translate with specific language
 
@@ -220,7 +220,7 @@
                 tLang('group.greeting', 'ar', { name: 'أحمد' })
                 ```
 
-            - #### `tParse(key, params?)`
+            - #### `tParse(key, params?, fallback?)`
 
                 > Parse translation with HTML tags
 
