@@ -46,7 +46,7 @@
             public async init(): Promise<void> {
 
                 if (this.storage) {
-                    const stored = await this.storage.get('i18n-language');
+                    const stored = await this.storage.get('lang');
                     if (stored && this.supportedLanguages.has(stored)) {
                         this.currentLanguage = stored;
                     }
@@ -240,8 +240,11 @@
 
                 // Persist if storage available
                 if (this.storage) {
-                    await this.storage.set('i18n-language', lang);
+                    await this.storage.set('lang', lang);
                 }
+
+                // Set cookie
+                setCookie('lang', lang, 365);
 
                 // Notify listeners
                 this.listeners.forEach(fn => fn(lang));
@@ -319,6 +322,23 @@
 
         // └────────────────────────────────────────────────────────────────────┘
 
+    }
+
+// ╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+
+
+// ╔════════════════════════════════════════ HELP ════════════════════════════════════════╗
+
+    // Function to set a cookie with name, value, and days to expire
+    function setCookie(name: string, value: string, days: number) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
     }
 
 // ╚══════════════════════════════════════════════════════════════════════════════════════╝

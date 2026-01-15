@@ -5,7 +5,7 @@
 	"repo"              : {
 		"org"           : "minejs",
 		"name"          : "i18n",
-		"version"       : "0.1.0",
+		"version"       : "0.1.1",
 		"desc"          : "A lightweight, production-ready internationalization (i18n) library with zero dependencies.",
 		"kw"            : ["minejs", "i18n"],
 		"license"       : "MIT",
