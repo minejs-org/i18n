@@ -72,23 +72,31 @@
          * Caches the promise to prevent duplicate requests
          */
         async load(lang: types.LanguageCode): Promise<void> {
+           // console.log(`[LazyLoader] load() called for language: "${lang}"`);
+
             // Already loaded
             if (this.loaded.has(lang)) {
+               // console.log(`[LazyLoader] Language "${lang}" already loaded, returning immediately`);
                 return;
             }
 
             // Currently loading
             if (this.loading.has(lang)) {
+               // console.log(`[LazyLoader] Language "${lang}" is currently loading, returning existing promise`);
                 return this.loading.get(lang);
             }
 
             // Start loading
+           // console.log(`[LazyLoader] Starting to load language: "${lang}"`);
             const promise = this.doLoad(lang);
             this.loading.set(lang, promise);
 
             try {
                 await promise;
                 this.loaded.add(lang);
+               // console.log(`[LazyLoader] Language "${lang}" loaded and marked as loaded`);
+            } catch (error) {
+                console.error(`[LazyLoader] Error loading language "${lang}":`, error);
             } finally {
                 this.loading.delete(lang);
             }
@@ -97,23 +105,31 @@
         private async doLoad(lang: types.LanguageCode): Promise<void> {
             try {
                 const filePath = `${this.baseUrl}${lang}.${this.fileExtension}`;
+               // console.log(`[LazyLoader] doLoad() - filePath: "${filePath}"`);
+               // console.log(`[LazyLoader] isServerSide: ${this.isServerSide}`);
 
                 let data: Record<string, string> | null;
 
                 // Check if it's a local file path (relative or absolute)
                 const isLocalPath = filePath.startsWith('.') || filePath.startsWith('/') || /^[a-zA-Z]:/.test(filePath);
+               // console.log(`[LazyLoader] isLocalPath: ${isLocalPath}`);
 
                 if (isLocalPath || this.isServerSide) {
                     // Node.js/local: Read from filesystem
+                   // console.log(`[LazyLoader] Loading from file...`);
                     data = await this.loadFromFile(filePath);
                 } else {
                     // Browser: Fetch from URL
+                   // console.log(`[LazyLoader] Loading from URL...`);
                     data = await this.loadFromUrl(filePath);
                 }
 
                 if (data) {
+                   // console.log(`[LazyLoader] Data loaded successfully, keys:`, Object.keys(data).length);
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     this.manager.loadLanguage(lang, data as Record<string, any>);
+                } else {
+                    console.warn(`[LazyLoader] No data loaded for language: "${lang}"`);
                 }
             } catch (error) {
                 console.warn(`[i18n] Error loading language: ${lang}`, error);
@@ -294,6 +310,29 @@
      */
     export const tLang = (lang: types.LanguageCode, key: string, params?: Record<string, string>, fallback?: string) =>
         getI18n().tLang(lang, key, params, fallback);
+
+    /**
+     * Translate a key with a specific language - async version that loads language if needed
+     * Use this on server-side with lazy loading to ensure language is loaded first
+     */
+    export const tLangAsync = async (lang: types.LanguageCode, key: string, params?: Record<string, string>, fallback?: string): Promise<string> => {
+        // console.log(`[i18n] tLangAsync() called: lang="${lang}", key="${key}"`);
+
+        // Load language if lazy loader available
+        if (lazyLoader && !lazyLoader.isLoaded(lang)) {
+            // console.log(`[i18n] Language "${lang}" not loaded, loading now...`);
+            await lazyLoader.load(lang);
+            // console.log(`[i18n] Language "${lang}" loaded successfully`);
+        } else if (lazyLoader) {
+            // console.log(`[i18n] Language "${lang}" already loaded`);
+        } else {
+            // console.log(`[i18n] No LazyLoader available`);
+        }
+
+        const result = getI18n().tLang(lang, key, params, fallback);
+        // console.log(`[i18n] tLangAsync() result: "${result}"`);
+        return result;
+    };
 
     /**
      * Parse translation with HTML tags into tokens

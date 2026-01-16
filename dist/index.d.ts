@@ -201,6 +201,11 @@ declare const t: (key: string, params?: Record<string, string>, fallback?: strin
  */
 declare const tLang: (lang: LanguageCode, key: string, params?: Record<string, string>, fallback?: string) => string;
 /**
+ * Translate a key with a specific language - async version that loads language if needed
+ * Use this on server-side with lazy loading to ensure language is loaded first
+ */
+declare const tLangAsync: (lang: LanguageCode, key: string, params?: Record<string, string>, fallback?: string) => Promise<string>;
+/**
  * Parse translation with HTML tags into tokens
  */
 declare const tParse: (key: string, params?: Record<string, string>, fallback?: string) => TranslationToken[];
@@ -272,4 +277,4 @@ declare const _default: {
 type I18nManagerInstance = InstanceType<typeof I18nManager>;
 type LazyLoaderInstance = InstanceType<typeof LazyLoader>;
 
-export { type I18nConfig, I18nManager, type I18nManagerInstance, type I18nStorage, type LanguageCode, LazyLoader, type LazyLoaderInstance, type TranslationSet, type TranslationToken, _default as default, getI18n, getLanguage, getLazyLoader, getSupportedLanguages, hasKey, isRTL, isRTLLanguage, loadLanguage, loadTranslations, onChange, plural, setLanguage, setupI18n, t, tLang, tParse };
+export { type I18nConfig, I18nManager, type I18nManagerInstance, type I18nStorage, type LanguageCode, LazyLoader, type LazyLoaderInstance, type TranslationSet, type TranslationToken, _default as default, getI18n, getLanguage, getLazyLoader, getSupportedLanguages, hasKey, isRTL, isRTLLanguage, loadLanguage, loadTranslations, onChange, plural, setLanguage, setupI18n, t, tLang, tLangAsync, tParse };

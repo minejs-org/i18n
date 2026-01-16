@@ -249,18 +249,18 @@
                     });
 
                     test('should translate with specified language', () => {
-                        const result = manager.tLang('greeting', 'ar');
+                        const result = manager.tLang('ar', 'greeting');
                         expect(result).toBe('مرحبا');
                     });
 
                     test('should not change current language', () => {
-                        manager.tLang('greeting', 'ar');
+                        manager.tLang('ar', 'greeting');
                         expect(manager.getLanguage()).toBe('en');
                     });
 
                     test('should support parameters', () => {
                         manager.loadLanguage('fr', { msg: 'Bonjour {name}' });
-                        const result = manager.tLang('msg', 'fr', { name: 'Jean' });
+                        const result = manager.tLang('fr', 'msg', { name: 'Jean' });
                         expect(result).toContain('Jean');
                     });
                 });
@@ -625,7 +625,7 @@
                     test('should translate with specific language', () => {
                         const m = new I18nManager();
                         m.loadLanguage('ar', { 'app.name': 'تطبيقي' });
-                        const result = m.tLang('app.name', 'ar');
+                        const result = m.tLang('ar', 'app.name');
                         expect(result).toBe('تطبيقي');
                     });
                 });

@@ -44,13 +44,24 @@
              * Initialize with stored language preference
              */
             public async init(): Promise<void> {
+               // console.log('[i18n] Initializing manager...');
+               // console.log('[i18n] Current language:', this.currentLanguage);
+               // console.log('[i18n] Default language:', this.defaultLanguage);
 
                 if (this.storage) {
-                    const stored = await this.storage.get('lang');
+                   // console.log('[i18n] Storage available, checking for stored language...');
+                    const stored = await this.storage.get('i18n-language');
+                   // console.log('[i18n] Stored language from storage:', stored);
                     if (stored && this.supportedLanguages.has(stored)) {
+                       // console.log('[i18n] Stored language is supported, setting to:', stored);
                         this.currentLanguage = stored;
+                    } else {
+                       // console.log('[i18n] Stored language not supported or not found, keeping:', this.currentLanguage);
                     }
+                } else {
+                   // console.log('[i18n] No storage available');
                 }
+               // console.log('[i18n] Init complete. Current language:', this.currentLanguage);
             }
 
         // └────────────────────────────────────────────────────────────────────┘
@@ -65,13 +76,21 @@
              */
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             public loadLanguage(lang: types.LanguageCode, translations: Record<string, any>): void {
+               // console.log(`[i18n] Loading language: "${lang}"`);
+               // console.log(`[i18n] Translation keys count:`, Object.keys(translations).length);
+                
                 if (!this.translations[lang]) {
                     this.translations[lang] = {};
                 }
 
                 const flattened = this.flattenObject(translations);
+               // console.log(`[i18n] Flattened translation keys count for "${lang}":`, Object.keys(flattened).length);
+                
                 this.translations[lang] = { ...this.translations[lang], ...flattened };
                 this.supportedLanguages.add(lang);
+                
+               // console.log(`[i18n] Language "${lang}" loaded successfully. Total keys:`, Object.keys(this.translations[lang]).length);
+               // console.log(`[i18n] Supported languages:`, Array.from(this.supportedLanguages));
             }
 
             /**
@@ -148,15 +167,24 @@
              * @private
              */
             private getTranslation(key: string, fallback?: string): string {
+               // console.log(`[i18n] getTranslation() - Looking up key: "${key}" in language: "${this.currentLanguage}"`);
+               // console.log(`[i18n] Translations available for "${this.currentLanguage}":`, this.translations[this.currentLanguage] ? 'YES' : 'NO');
+                
                 // Try current language
                 if (this.translations[this.currentLanguage]?.[key]) {
-                    return this.translations[this.currentLanguage][key];
+                    const value = this.translations[this.currentLanguage][key];
+                   // console.log(`[i18n] Found in current language "${this.currentLanguage}": "${value}"`);
+                    return value;
                 }
+
+               // console.log(`[i18n] Translation key "${key}" not found in language "${this.currentLanguage}"`);
 
                 // Try default language
                 if (this.defaultLanguage !== this.currentLanguage &&
                     this.translations[this.defaultLanguage]?.[key]) {
-                    return this.translations[this.defaultLanguage][key];
+                    const value = this.translations[this.defaultLanguage][key];
+                   // console.log(`[i18n] Found in default language "${this.defaultLanguage}": "${value}"`);
+                    return value;
                 }
 
                 // Warn and return fallback
@@ -173,10 +201,20 @@
              * @param fallback Optional fallback string if key not found
              */
             public tLang(lang: types.LanguageCode, key: string, params?: Record<string, string>, fallback?: string): string {
+               // console.log(`[i18n] tLang() called: lang="${lang}", key="${key}"`);
+               // console.log(`[i18n] Current language before switch: "${this.currentLanguage}"`);
+               // console.log(`[i18n] Available translations for "${lang}":`, this.translations[lang] ? Object.keys(this.translations[lang]).slice(0, 5) : 'NONE');
+                
                 const original = this.currentLanguage;
                 this.currentLanguage = lang;
+               // console.log(`[i18n] Temporarily switched to: "${lang}"`);
+                
                 const result = this.t(key, params, fallback);
+                
                 this.currentLanguage = original;
+               // console.log(`[i18n] Switched back to original language: "${original}"`);
+               // console.log(`[i18n] tLang() result for key "${key}":`, result);
+                
                 return result;
             }
 
@@ -233,16 +271,26 @@
              * Set current language
              */
             public async setLanguage(lang: types.LanguageCode): Promise<void> {
+               // console.log(`[i18n] setLanguage() called with lang: "${lang}"`);
+               // console.log(`[i18n] Checking if "${lang}" is supported...`);
+               // console.log(`[i18n] Supported languages:`, Array.from(this.supportedLanguages));
+                
                 if (!this.supportedLanguages.has(lang)) {
-                    // console.warn(`[i18n] Language "${lang}" not supported`);
+                    console.warn(`[i18n] Language "${lang}" not supported, aborting setLanguage()`);
                     return;
                 }
 
+               // console.log(`[i18n] Language "${lang}" is supported. Setting current language...`);
                 this.currentLanguage = lang;
+               // console.log(`[i18n] Current language set to: "${lang}"`);
 
                 // Persist if storage available
                 if (this.storage) {
-                    await this.storage.set('lang', lang);
+                   // console.log(`[i18n] Persisting language "${lang}" to storage...`);
+                    await this.storage.set('i18n-language', lang);
+                   // console.log(`[i18n] Language persisted to storage`);
+                } else {
+                   // console.log(`[i18n] No storage available for persistence`);
                 }
 
                 // client
@@ -252,14 +300,19 @@
 
                     // html lang attribute
                     document.documentElement.lang = lang;
+                   // console.log(`[i18n] Set document.lang to "${lang}"`);
                 }
 
                 // Notify listeners
+               // console.log(`[i18n] Notifying ${this.listeners.size} listeners...`);
                 this.listeners.forEach(fn => fn(lang));
 
                 if (this.onLanguageChange) {
+                   // console.log(`[i18n] Calling onLanguageChange callback...`);
                     this.onLanguageChange(lang);
                 }
+                
+               // console.log(`[i18n] setLanguage() completed for "${lang}"`);
             }
 
             /**
