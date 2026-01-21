@@ -291,6 +291,7 @@
         // set lang in html
         if (isBrowser()) {
             document.documentElement.lang = instance.getLanguage();
+            document.documentElement.dir = instance.isRTL() ? 'rtl' : 'ltr';
         }
 
         return instance;
