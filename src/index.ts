@@ -288,6 +288,11 @@
             await lazyLoader.load(instance.getLanguage());
         }
 
+        // set lang in html
+        if (isBrowser()) {
+            document.documentElement.lang = instance.getLanguage();
+        }
+
         return instance;
     }
 
