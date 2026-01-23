@@ -349,12 +349,12 @@
     /**
      * Set current language and trigger listeners
      */
-    export const setLanguage = (lang: types.LanguageCode): Promise<void> => {
+    export const setLanguage = (lang: types.LanguageCode, _setLang = true, _setDir = true, _setCookie = true): Promise<void> => {
         // Load language if lazy loader available
         if (lazyLoader && !lazyLoader.isLoaded(lang)) {
-            return lazyLoader.load(lang).then(() => getI18n().setLanguage(lang));
+            return lazyLoader.load(lang).then(() => getI18n().setLanguage(lang, _setLang, _setDir, _setCookie));
         }
-        return getI18n().setLanguage(lang);
+        return getI18n().setLanguage(lang, _setLang, _setDir, _setCookie);
     };
 
     /**

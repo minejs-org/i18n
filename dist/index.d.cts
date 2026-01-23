@@ -99,7 +99,7 @@ declare class I18nManager {
     /**
      * Set current language
      */
-    setLanguage(lang: LanguageCode): Promise<void>;
+    setLanguage(lang: LanguageCode, _setLang?: boolean, _setDir?: boolean, _setCookie?: boolean): Promise<void>;
     /**
      * Get current language
      */
@@ -212,7 +212,7 @@ declare const tParse: (key: string, params?: Record<string, string>, fallback?: 
 /**
  * Set current language and trigger listeners
  */
-declare const setLanguage: (lang: LanguageCode) => Promise<void>;
+declare const setLanguage: (lang: LanguageCode, _setLang?: boolean, _setDir?: boolean, _setCookie?: boolean) => Promise<void>;
 /**
  * Get current language code
  */
@@ -262,7 +262,7 @@ declare const _default: {
     t: (key: string, params?: Record<string, string>, fallback?: string) => string;
     tLang: (lang: LanguageCode, key: string, params?: Record<string, string>, fallback?: string) => string;
     tParse: (key: string, params?: Record<string, string>, fallback?: string) => TranslationToken[];
-    setLanguage: (lang: LanguageCode) => Promise<void>;
+    setLanguage: (lang: LanguageCode, _setLang?: boolean, _setDir?: boolean, _setCookie?: boolean) => Promise<void>;
     getLanguage: () => string;
     getSupportedLanguages: () => string[];
     hasKey: (key: string) => boolean;

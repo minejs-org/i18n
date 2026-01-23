@@ -236,7 +236,7 @@
             /**
              * Set current language
              */
-            public async setLanguage(lang: types.LanguageCode): Promise<void> {
+            public async setLanguage(lang: types.LanguageCode, _setLang = true, _setDir = true, _setCookie = true): Promise<void> {
                 if (!this.supportedLanguages.has(lang)) {
                     console.warn(`[i18n] Language "${lang}" not supported, aborting setLanguage()`);
                     return;
@@ -252,13 +252,13 @@
                 // client
                 if( typeof document !== 'undefined' ) {
                     // cookie
-                    setCookie('lang', lang, 365);
+                    if( _setCookie ) setCookie('lang', lang, 365);
 
                     // html lang attribute
-                    document.documentElement.lang = lang;
+                    if( _setLang ) document.documentElement.lang = lang;
 
                     // dir attr
-                    document.documentElement.dir = this.isRTL() ? 'rtl' : 'ltr';
+                    if( _setDir ) document.documentElement.dir = this.isRTL() ? 'rtl' : 'ltr';
                 }
 
                 // Notify listeners
